@@ -34,9 +34,9 @@ function genNames () {
 		colours = colours.map(c => c.toLowerCase());
 		initials = initials.map(i => i.toLowerCase());
 
-		colours = colours.filter(c => {for (n=0;n<0;n++){c = c.splice(c.indexOf(initials[n]), 1);}  return c.indexOf(initials[0]) !== -1;});
+		colours = colours.filter(c => {for (n=0;n<0;n++){c = c.splice(c.indexOf(initials[n]), 1);} return c.indexOf(initials[0]) !== -1;});
 		console.log(colours);
-		colours = colours.filter(c => {for (n=0;n<1;n++){c = c.splice(c.indexOf(initials[n]), 1);} console.log(c); return c.indexOf(initials[1]) !== -1;});
+		colours = colours.filter(c => {for (n=0;n<1;n++){c = c.splice(c.indexOf(initials[n]), 1);} return c.indexOf(initials[1]) !== -1;});
 		console.log(colours);
 		colours = colours.filter(c => {for (n=0;n<2;n++){c = c.splice(c.indexOf(initials[n]), 1);} return c.indexOf(initials[2]) !== -1;});
 		console.log(colours);
