@@ -20,11 +20,17 @@ At the core of Nana, and what sets it apart from every other Tetris AI is the us
 
 How does it do this? Using TDS, of course.
 
-TDS-MCTS is a version of MCTS that schedules work on each node of the tree according to a distributed hash table (the "transposition table"). 
+TDS-MCTS is a version of MCTS that schedules work on each node of the tree according to a distributed hash table (the "transposition table"). This is a unique way of parallelising MCTS that essentially ensures perfectly even load balancing, without memory locks or thread waiting for that matter.
 
-TDS-MCTS leverages this hash-based assignment to ensure that every node in the search tree is processed independently, with zero contention between threads. Each core operates on its subset of the tree, running Monte Carlo simulations to evaluate potential moves. The transposition table ties it all together, storing results for each game state so that duplicate nodes—inevitable in games like Tetris—don’t waste computational effort.
+This is in heavy contrast to other ideas for parallelising MCTS, such as holding multiple search trees, parallelising evaluation work itself (called "leaf parallelisation") or aggressively applying mutexes to the entire tree. The efficiency of TDS at scaling with high thread counts completely blows these methods out of the water.
 
-What’s wild is how this scales. Traditional MCTS parallelization hits a wall around 16-32 cores due to communication overhead or lock contention. TDS-MCTS sidesteps that entirely. By distributing ownership via hashes, Nana’s threads don’t need to negotiate or synchronize beyond the bare minimum. We’ve tested this on setups with 1024 cores, and the strength improvement stays linear—no drop-off, no diminishing returns. It’s a brute-force elegance that makes Nana a monster at exploring vast game trees.
+Now, Nana implements MCTS by performing "walks" of the tree, which can be thought of as long chains of compute-jobs that inspect relevant gamestates. Along the way, we use Upper Confidence Bounds to choose which node to walk next. 
+
+Each step of the walk, the owner of the current gamestate does some work, produces a new gamestate, and then figures out which thread owns that new gamestate. It creates a new compute job and sends it directly to that owner thread.
+
+The result of this? Nearly zero communication, no locks or mutual exclusions, and an extremely elegant memory ownership system. By distributing ownership via hashes, Nana’s threads don’t need to negotiate or synchronize beyond the bare minimum. Optimised versions of TDS-MCTS were recently tested on setups with 1024 cores, with **linear strength scaling**. That is to say, running TDS-MCTS for 1 minute is as good as running MCTS for 1,204 minutes or **20 hours**. This is unprecedented levels of parallel efficiency.
+
+However, TDS-MCTS *does* have some caveats, namely when it comes to non uniform workloads. Basically, if not all jobs are equally intensive, random-esque scheduling causes massive load imbalance. This is where Nana's "work witholding" (discussed later) comes in to essentially eliminate that issue. 
 
 ### Transposition Tables, Imperfect Information and State Abstraction
 
