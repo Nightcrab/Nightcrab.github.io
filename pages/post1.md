@@ -34,11 +34,39 @@ However, TDS-MCTS *does* have some caveats, namely when it comes to non uniform 
 
 ### Transposition Tables, Imperfect Information and State Abstraction
 
-Tetris isn’t a perfect-information game like chess—future pieces are unknown, which complicates planning. Nana handles this with a beefed-up transposition table that doesn’t just store evaluated game states but also abstracts them. Imagine two board states that differ only in irrelevant details—like a few empty cells in a corner that don’t affect the next move. Nana’s state abstraction clumps these into a single entry, slashing memory usage and redundant computation.
+TDS-MCTS gives Nana its computational power, but our transposition table is what allows us to manage the intractability of Tetris and Versus Tetris. While complex, this is basically our extremely powerful datastructure that makes Nana possible at all.
 
-The transposition table itself is distributed across threads via TDS, so each core owns its slice of the hash space. When a thread evaluates a node, it checks its local table first. 
+The table is not just a lookup for past computations alongside the game tree; it *is* the game tree. Every node in the game simply exists somewhere in the transposition table, and we don't store the nodes that it leads to. To go from one node to the next, computation needs to be done. This seems at first like a waste, but actually, it is essential to handle extremely large branching factors.
 
-If the state’s hash maps to another thread, it queues a lookup or defers the work—no blocking, no fuss. For imperfect information, Nana runs simulations with sampled piece sequences, averaging outcomes to approximate the “true” value of a state. This abstraction and distribution combo keeps memory footprints tiny and lets Nana chew through millions of nodes per second, even with uncertainty in the mix.
+This is because Tetris is not a deterministic or perfect information game. The same action from the same state can lead to multiple possible states, and we can't realistically enumerate all these possibilites. So instead of storing the tree, with explicitly defined edges, Nana just maintains a massive hash table, allowing nodes to "jump" from one to the other using nondeterministic state transition rules.
+
+Nana's MCTS is actually something called "Information State MCTS" or ISMCTS. Basically, at any point in the tree, we make a decision based only on the information available to us in that moment. This leads directly into a natural implementation of state abstraction.
+
+State abstraction is the method of combining multiple similar gamestates into a single gamestate. For example, we might choose to group all boards which have the same surface but different heights (simplistic example). This can actually be done by just giving such states the same hash. To Nana, it can no longer tell that such states are actually different.
+
+If done right, this actually massively reduces the original game tree to a much smaller tree in which good and bad decisions are also good and bad in the original game tree.
+
+In addition, our transposition table also handles strict memory ownership and allows memory to be allocated right next to the cores that are using it; with no expensive communication needed to read relevant information. This is unlike, say, Stockfish, whose hash table is shared among all its threads, resulting in congestion and overhead which prevents it from scaling past 16 cores.
+
+### Online Search and Garbage Collection
+
+It's worth prefacing that by "online" I don't mean that Nana is connected to the internet. I mean that Nana is playing in a real match against an opponent, making one move after the next and seeing how the game unfolds. In this scenario, we definitely want to reuse search results from the previous move. This is because if Nana is working well, it already identified the current state as a likely outcome and has partially searched it.
+
+Simply maintaining the entire tree causes memory to grow until Nana inevitably crashes. Instead, we try to garbage collect irrelevant nodes and keep only what's useful.
+
+Walking the tree and determining exactly which nodes are or are not children of the current state is a massive waste of computation. So, how do we know what parts of the tree to keep and what parts to not keep? How do we even delete such a large number of nodes in an efficient manner?
+
+Well, actually, there's a pretty elegant solution that allows to do both of these things essentially for free. What Nana does is this:
+
+1. Separate the transposition table into two halves.
+2. When we search a node, check if it exists on the **right** side of the table.
+3. If not, check the **left** side.
+4. If the node is there, copy it to the **right** side and use that.
+5. When we receive a new root state, overwrite the **left** side with the **right** side.
+6. Clear the entire **right** side.
+7. Repeat.
+
+The beauty of this is that we can actually garbage collect and search at the same time. The idea is that we store a search tree that is two moves old; if a node is visited, it gets put on the "fresh" side of the table and otherwise it gets culled by a `malloc` at the end of the search. Not to mention that this is again, completely communication-free. Each thread completely manages their own part of the table, including a left and a right side. This garbage collection strategy works fantastically.
 
 ### Single Producer, Single Consumer
 
