@@ -28,7 +28,7 @@ Now, Nana implements MCTS by performing "walks" of the tree, which can be though
 
 Each step of the walk, the owner of the current gamestate does some work, produces a new gamestate, and then figures out which thread owns that new gamestate. It creates a new compute job and sends it directly to that owner thread.
 
-The result of this? Nearly zero communication, no locks or mutual exclusions, and an extremely elegant memory ownership system. By distributing ownership via hashes, Nana’s threads don’t need to negotiate or synchronize beyond the bare minimum. Optimised versions of TDS-MCTS were recently tested on setups with 1024 cores, with **linear strength scaling**. That is to say, running TDS-MCTS for 1 minute is as good as running MCTS for 1,204 minutes or **20 hours**. This is unprecedented levels of parallel efficiency.
+The result of this? Nearly zero communication, no locks or mutual exclusions, and an extremely elegant memory ownership system. By distributing ownership via hashes, Nana’s threads don’t need to negotiate or synchronize beyond the bare minimum. Optimised versions of TDS-MCTS were recently tested on setups with 1024 cores, with **linear strength scaling**. That is to say, running TDS-MCTS for *1 minute* is as good as running MCTS for 1,204 minutes or *20 hours*. This is unprecedented scaling.
 
 However, TDS-MCTS *does* have some caveats, namely when it comes to non uniform workloads. Basically, if not all jobs are equally intensive, random-esque scheduling causes massive load imbalance. This is where Nana's "work witholding" (discussed later) comes in to essentially eliminate that issue. 
 
