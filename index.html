@@ -15,78 +15,34 @@
                     Paul Anderson
                 </a>
                 <div class="top-bar-right">
-                    <a class="about no-style" href="/">
+                    <a class="about no-style" href="/blog.html">
                         Blog
                     </a>
                     <a class="about no-style" href="https://github.com/Nightcrab">
                         GitHub
                     </a>
-                    <a class="about no-style" href="/about.html">
+                    <a class="about no-style" href="/">
                         About
                     </a>
                 </div>
             </div>
         </div>
-        <div class="blog-body">
-            <div class="posts-list-header">
-                Blog Posts
-            </div>
-            <div class="line">
-                
-            </div>
-            <div class="posts-list">
-                <div class="post-list-entry" style="display:none;">
-                    <div class="left">
-                        <img class="post-thumb" src="/3.png">
-                    </div>
-                    <div class="right">
-                        <div class="post-name">
-                            <a href="/pages/post1.html" class="no-style">God of Stackers</a>
-                        </div>
-                        <div class="post-description">
-                            Exploring the rapid development phase for the early version of our online video game, God of Stackers.
-                        </div>
-                        <div class="post-date">
-                            1/03/2025
-                        </div>
-    
-                        <div class="post-tags">
-                            <div class="tag">Fullstack Development</div>
-                            <div class="tag">Game Design</div>
-                            <div class="tag">God of Stackers</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="post-list-entry">
-                    <div class="left">
-                        <img class="post-thumb" src="/1.png">
-                    </div>
-                    <div class="right">
-                        <div class="post-name">
-                            <a href="/pages/post1.html" class="no-style">Improving Transposition Driven Scheduling</a>
-                        </div>
-                        <div class="post-description">
-                            A work stealing version of MCTS that achieves perfect scaling with multiple cores.
-                        </div>
-                        <div class="post-date">
-                            1/03/2025
-                        </div>
-                        <div class="post-tags">
-                            <div class="tag">Artificial Intelligence</div>
-                            <div class="tag">Distributed Computing</div>
-                            <div class="tag">MCTS</div>
-                        </div>
-
-                    </div>
-                </div>
-                
-                <div class="line">
-                    
-                </div>
-            </div>
+        <div class="blog-body" id="content">
+            <script>
+                var requestURL = '/about.md';
+                var request = new XMLHttpRequest();
+                request.open('GET', requestURL);
+                request.responseType = 'txt';
+                request.send();
+                var colours;
+                request.onload = function() {
+                    document.getElementById('content').innerHTML =
+                    marked.parse(request.response);
+                }
+            </script>
         </div>
         <div class="footer">
-
+            
         </div>
     </div>
     <script src="script.js"></script>
