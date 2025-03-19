@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paul Anderson's personal blog</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="blog-container">
+        <div class="top-bar">
+            <div class="wrapper">
+                <a class="site-title no-style" href="/">
+                    Paul Anderson
+                </a>
+                <div class="top-bar-right">
+                    <a class="about no-style" href="/">
+                        Blog
+                    </a>
+                    <a class="about no-style" href="https://github.com/Nightcrab">
+                        GitHub
+                    </a>
+                    <a class="about no-style" href="/about.html">
+                        About
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="blog-body" id="content">
+            <script>
+                var requestURL = '/pages/post1.md';
+                var request = new XMLHttpRequest();
+                request.open('GET', requestURL);
+                request.responseType = 'txt';
+                request.send();
+                var colours;
+                request.onload = function() {
+                    document.getElementById('content').innerHTML =
+                    marked.parse(request.response);
+                }
+            </script>
+        </div>
+        <div class="footer">
+            
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
