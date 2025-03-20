@@ -1,6 +1,6 @@
 ## About Me
 
-I am a computer science student with an interest in Artificial Intelligence and HPC. My work mainly covers questions such as:
+I am a professional software engineer with an academic interest in Artificial Intelligence and HPC. My work mainly covers questions such as:
 
 1. What is the optimal hardware to suit a particular model or algorithm? And conversely, given hardware constraints, what algorithm is ideal?
 
