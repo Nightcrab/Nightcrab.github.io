@@ -29,3 +29,7 @@ The site was developed by me in plain HTML5, with the use of Marked to render ma
 Guillermo Sanchez-Brizuela, Ved Patwardhan, Matthew Barrett, **Paul Anderson**, Mustafa Hani, Daniel James Lenton
 
 *Workshop on Advancing Neural Network Training (WANT) @ NeurIPS 2023*
+
+## Contact Details
+
+Email: paul.kr.anderson@gmail.com
